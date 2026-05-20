@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basketball — Career Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #ff3b3b;
+            --blue: #3b7eff;
+            --gold: #ffd23f;
+            --dark: #141414;
+            --mid: #1e1e1e;
+            --panel: #252525;
+            --border: #333;
+            --text: #e8e8e8;
+            --muted: #777;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--dark);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ── AUTH SCREEN ── */
+        #auth-screen {
+            position: fixed; inset: 0; z-index: 100;
+            background: var(--dark);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .auth-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 48px 44px;
+            width: 360px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+        }
+
+        .auth-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 42px;
+            letter-spacing: 3px;
+            text-align: center;
+            color: var(--gold);
+            margin-bottom: 4px;
+        }
+
+        .auth-sub {
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 32px;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            padding: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-tab.active {
+            background: var(--gold);
+            color: #111;
+        }
+
+        .field-group {
+            margin-bottom: 16px;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .field-group input {
+            width: 100%;
+            background: var(--mid);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .field-group input:focus {
+            border-color: var(--gold);
+        }
+
+        .auth-btn {
+            width: 100%;
+            margin-top: 8px;
+            padding: 13px;
+            background: var(--gold);
+            color: #111;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 20px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .auth-btn:hover { opacity: 0.9; }
+        .auth-btn:active { transform: scale(0.98); }
+
+        #auth-error {
+            color: var(--red);
+            font-size: 13px;
+            text-align: center;
+            margin-top: 12px;
+            min-height: 18px;
+        }
+
+        /* ── GAME HEADER ── */
+        #game-screen { display: none; flex-direction: column; align-items: center; width: 100%; }
+
+        #topbar {
+            width: 800px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0 10px;
+        }
+
+        #topbar .brand {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 26px;
+            letter-spacing: 3px;
+            color: var(--gold);
+        }
+
+        #topbar .user-info {
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 16px;
+            color: #111;
+        }
+
+        .username-display {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+        /* ── SCOREBOARD ── */
+        #scoreboard {
+            width: 800px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .team-score {
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+        }
+
+        .team-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 13px;
+            letter-spacing: 2px;
+        }
+
+        .team-label.red { color: var(--red); }
+        .team-label.blue { color: var(--blue); }
+
+        .score-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 52px;
+            line-height: 1;
+        }
+
+        .career-pts {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .center-panel { text-align: center; }
+
+        #timer {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 38px;
+            color: var(--gold);
+            letter-spacing: 4px;
+        }
+
+        .new-game-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 18px;
+            border-radius: 6px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 16px;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            margin-top: 6px;
+            display: none;
+            transition: all 0.2s;
+        }
+
+        .new-game-btn.visible { display: inline-block; }
+        .new-game-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+        canvas {
+            background: #2a2a2a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: crosshair;
+            display: block;
+        }
+
+        #controls-hint {
+            color: var(--muted);
+            font-size: 12px;
+            margin: 8px 0 16px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── LEADERBOARD ── */
+        #leaderboard {
+            width: 800px;
+            margin-bottom: 40px;
+        }
+
+        #leaderboard h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            letter-spacing: 3px;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        #lb-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        #lb-table th {
+            text-align: left;
+            padding: 8px 12px;
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        #lb-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        #lb-table tr.me td { color: var(--gold); }
+
+        .rank { color: var(--muted); font-size: 12px; }
+        .lb-name { font-weight: 600; }
+
+        /* ── FIREBASE SETUP WARNING ── */
+        #config-warn {
+            background: #2a1a00;
+            border: 1px solid #664400;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            color: #ffa040;
+            width: 800px;
+            line-height: 1.6;
+        }
+
+        #config-warn code {
+            background: #1a1000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        #config-warn.hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<!-- ══ AUTH SCREEN ══ -->
+<div id="auth-screen">
+    <div class="auth-card">
+        <div class="auth-logo">🏀 HOOPS</div>
+        <div class="auth-sub">Career Mode — Sign in to save your stats</div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">LOGIN</button>
+            <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">SIGN UP</button>
+        </div>
+
+        <div id="login-form">
+            <div class="field-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="you@email.com" />
+            </div>
+            <div class="field-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" />
+            </div>
+            <button class="auth-btn" onclick="doLogin()">PLAY BALL</button>
+        </div>
+
+        <div id="signup-form" style="display:none">
+            <div class="field-group">
+                <label>Username</label>
+                <input type="text" id="signup-username" placeholder="CourtKing23" maxlength="20" />
+            </div>
+            <div class="field-group">
+                <label>Email</label>
+                <input type="email" id="signup-email" placeholder="you@email.com" />
+            </div>
+            <div class="field-group">
+                <label>Password</label>
+                <input type="password" id="signup-password" placeholder="Min 6 characters" />
+            </div>
+            <button class="auth-btn" onclick="doSignup()">CREATE ACCOUNT</button>
+        </div>
+
+        <div id="auth-error"></div>
+    </div>
+</div>
+
+<!-- ══ GAME SCREEN ══ -->
+<div id="game-screen">
+
+    <div id="config-warn">
+        ⚠️ <strong>Firebase not configured.</strong> Replace the placeholder config at the top of the &lt;script&gt; with your own Firebase project credentials. 
+        Get them from <code>console.firebase.google.com</code> → Project Settings → Your Apps. 
+        Auth (Email/Password) and Realtime Database must be enabled.
+    </div>
+
+    <div id="topbar">
+        <div class="brand">🏀 HOOPS</div>
+        <div class="user-info">
+            <div class="avatar" id="avatar-initial">?</div>
+            <span class="username-display" id="display-username">Player</span>
+            <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
+        </div>
+    </div>
+
+    <div id="scoreboard">
+        <div class="team-score">
+            <div class="team-label red">RED</div>
+            <div class="score-number" style="color:var(--red)" id="sRed">0</div>
+            <div class="career-pts">Career: <span id="careerRed">0</span> pts</div>
+        </div>
+        <div class="center-panel">
+            <div id="timer">03:00</div>
+            <button class="new-game-btn" id="newGameBtn" onclick="startNewGame()">NEW GAME</button>
+        </div>
+        <div class="team-score">
+            <div class="team-label blue">BLUE</div>
+            <div class="score-number" style="color:var(--blue)" id="sBlue">0</div>
+            <div class="career-pts">Career: <span id="careerBlue">0</span> pts</div>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+    <div id="controls-hint">
+        WASD (Red) &nbsp;|&nbsp; Arrow Keys (Blue) &nbsp;|&nbsp; Space (Steal) &nbsp;|&nbsp; Double-tap W / ↑ (Shoot)
+    </div>
+
+    <div id="leaderboard">
+        <h2>🏆 All-Time Leaderboard</h2>
+        <table id="lb-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Player</th>
+                    <th>Red Points</th>
+                    <th>Blue Points</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="lb-body">
+                <tr><td colspan="5" style="color:var(--muted);padding:16px 12px">Loading leaderboard…</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- ══ FIREBASE SDK ══ -->
+<script>
+const firebaseConfig = {
+    apiKey:            "AIzaSyB1R3pOac1jbg24OMNsdK0yPN8ot7O7_Rk",
+    authDomain:        "quakevault-2d285.firebaseapp.com",
+    databaseURL:       "https://quakevault-2d285-default-rtdb.firebaseio.com",
+    projectId:         "quakevault-2d285",
+    storageBucket:     "quakevault-2d285.firebasestorage.app",
+    messagingSenderId: "1098117266582",
+    appId:             "1:1098117266582:web:353cc1a6ade2a04d1616b7",
+    measurementId:     "G-8FC8FNSMM3"
+};
+
+const isConfigured = true;
+
+let _auth, _db, _fbFns = {};
+let currentUser = null;
+let careerData  = { red: 0, blue: 0 };
+
+// ── UI helpers — available immediately (no module scope issue) ──
+
+window.switchTab = (tab) => {
+    document.getElementById('login-form').style.display  = tab === 'login'  ? '' : 'none';
+    document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
+    document.getElementById('tab-login').classList.toggle('active',  tab === 'login');
+    document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+    document.getElementById('auth-error').textContent = '';
+};
+
+function setAuthLoading(loading, btnText) {
+    const btns = document.querySelectorAll('.auth-btn');
+    btns.forEach(b => { b.disabled = loading; b.textContent = loading ? 'LOADING...' : btnText || b.dataset.label || b.textContent; });
+}
+
+window.doLogin = async () => {
+    if (!_auth || !_fbFns.signIn) { document.getElementById('auth-error').textContent = 'Still loading, try again in a second.'; return; }
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-password').value;
+    document.getElementById('auth-error').textContent = '';
+    setAuthLoading(true);
+    try {
+        await _fbFns.signIn(_auth, email, pass);
+    } catch (e) {
+        document.getElementById('auth-error').textContent = friendlyError(e.code);
+        setAuthLoading(false);
+    }
+};
+
+window.doSignup = async () => {
+    if (!_auth || !_fbFns.createUser) { document.getElementById('auth-error').textContent = 'Still loading, try again in a second.'; return; }
+    const username = document.getElementById('signup-username').value.trim();
+    const email    = document.getElementById('signup-email').value.trim();
+    const pass     = document.getElementById('signup-password').value;
+    document.getElementById('auth-error').textContent = '';
+    if (!username) { document.getElementById('auth-error').textContent = 'Username is required.'; return; }
+    if (!email)    { document.getElementById('auth-error').textContent = 'Email is required.'; return; }
+    if (pass.length < 6) { document.getElementById('auth-error').textContent = 'Password must be at least 6 characters.'; return; }
+    setAuthLoading(true);
+    try {
+        const cred = await _fbFns.createUser(_auth, email, pass);
+        await _fbFns.set(_fbFns.ref(_db, `users/${cred.user.uid}`), {
+            username, email, careerRed: 0, careerBlue: 0, createdAt: Date.now()
+        });
+        // onAuthStateChanged will handle showing the game
+    } catch (e) {
+        document.getElementById('auth-error').textContent = friendlyError(e.code);
+        setAuthLoading(false);
+    }
+};
+
+window.doLogout = async () => {
+    if (!isConfigured) { location.reload(); return; }
+    await _fbFns.signOut(_auth);
+    location.reload();
+};
+
+window.addCareerPoints = async (team, amount = 1) => {
+    careerData[team] += amount;
+    document.getElementById(team === 'red' ? 'careerRed' : 'careerBlue').textContent = careerData[team];
+    if (isConfigured && currentUser) {
+        const field = team === 'red' ? 'careerRed' : 'careerBlue';
+        await _fbFns.update(_fbFns.ref(_db, `users/${currentUser.uid}`), { [field]: careerData[team] });
+        refreshLeaderboard();
+    }
+};
+
+function showGame(username) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display  = 'flex';
+    document.getElementById('display-username').textContent = username;
+    document.getElementById('avatar-initial').textContent   = username[0].toUpperCase();
+    document.getElementById('careerRed').textContent  = careerData.red;
+    document.getElementById('careerBlue').textContent = careerData.blue;
+}
+
+function enterDemoMode() {
+    careerData = { red: 0, blue: 0 };
+    showGame('Demo Player');
+    document.getElementById('lb-body').innerHTML = '<tr><td colspan="5" style="color:var(--muted);padding:16px 12px">Connect Firebase to see leaderboard.</td></tr>';
+}
+
+async function refreshLeaderboard() {
+    if (!isConfigured || !_db) return;
+    const snap = await _fbFns.get(_fbFns.query(_fbFns.ref(_db, 'users'), _fbFns.orderByChild('careerRed')));
+    const rows = [];
+    snap.forEach(child => {
+        const d = child.val();
+        rows.push({ uid: child.key, username: d.username || 'Player', red: d.careerRed || 0, blue: d.careerBlue || 0, total: (d.careerRed||0)+(d.careerBlue||0) });
+    });
+    rows.sort((a, b) => b.total - a.total);
+
+    const tbody = document.getElementById('lb-body');
+    tbody.innerHTML = rows.slice(0, 20).map((r, i) => `
+        <tr class="${r.uid === currentUser?.uid ? 'me' : ''}">
+            <td class="rank">${i + 1}</td>
+            <td class="lb-name">${r.uid === currentUser?.uid ? '⭐ ' : ''}${escHtml(r.username)}</td>
+            <td style="color:var(--red)">${r.red}</td>
+            <td style="color:var(--blue)">${r.blue}</td>
+            <td style="font-weight:600">${r.total}</td>
+        </tr>
+    `).join('') || '<tr><td colspan="5" style="color:var(--muted)">No data yet.</td></tr>';
+}
+
+function friendlyError(code) {
+    const map = {
+        'auth/user-not-found':     'No account with that email.',
+        'auth/wrong-password':     'Incorrect password.',
+        'auth/email-already-in-use': 'Email already registered.',
+        'auth/weak-password':      'Password must be at least 6 characters.',
+        'auth/invalid-email':      'Invalid email address.',
+        'auth/too-many-requests':  'Too many attempts — try again later.',
+    };
+    return map[code] || 'Something went wrong. Try again.';
+}
+
+function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Bootstrap Firebase via dynamic imports (avoids type=module scope issues) ──
+async function initFirebase() {
+    if (!isConfigured) {
+        console.warn("Firebase not configured — running in demo mode.");
+        return;
+    }
+    try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+        const { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+                signOut, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+        const { getDatabase, ref, set, get, update,
+                query, orderByChild } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+
+        const app = initializeApp(firebaseConfig);
+        _auth = getAuth(app);
+        _db   = getDatabase(app);
+
+        _fbFns = { signIn: signInWithEmailAndPassword, createUser: createUserWithEmailAndPassword,
+                   signOut, ref, set, get, update, query, orderByChild };
+
+        document.getElementById('config-warn').classList.add('hidden');
+
+        onAuthStateChanged(_auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const snap = await get(ref(_db, `users/${user.uid}`));
+                const profile = snap.val() || {};
+                careerData.red  = profile.careerRed  || 0;
+                careerData.blue = profile.careerBlue || 0;
+                showGame(profile.username || user.email.split('@')[0]);
+                refreshLeaderboard();
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('game-screen').style.display  = 'none';
+            }
+        });
+    } catch(e) {
+        console.error("Firebase init failed:", e);
+    }
+}
+
+initFirebase();
+</script>
+
+<!-- ══ GAME LOGIC ══ -->
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+
+const gravity = 0.5;
+const keys    = {};
+let lastW = 0, lastUp = 0;
+let shooter = null, shotLock = 0, stealCooldown = 0;
+
+const hoop = { x: 720, y: 200, w: 50, h: 8 };
+
+const ball = { x: 400, y: 200, dx: 0, dy: 0, radius: 11, carrier: null, isPerfect: false };
+
+let sessionScores = { red: 0, blue: 0 };
+let timeLeft = 180, gameOver = false;
+let timerInterval = null;
+
+class Player {
+    constructor(id, x, y, color) {
+        this.id = id; this.x = x; this.y = y;
+        this.w = 30; this.h = 55; this.color = color;
+        this.dx = 0; this.dy = 0; this.speed = 6; this.jump = -12;
+        this.grounded = false; this.facing = 1; this.dribbleY = 0;
+    }
+
+    update() {
+        if (keys[this.id === 'red' ? 'KeyA' : 'ArrowLeft'])       { this.dx = -this.speed; this.facing = -1; }
+        else if (keys[this.id === 'red' ? 'KeyD' : 'ArrowRight']) { this.dx = this.speed;  this.facing =  1; }
+        else { this.dx = 0; }
+
+        if (keys[this.id === 'red' ? 'KeyW' : 'ArrowUp'] && this.grounded) {
+            this.dy = this.jump; this.grounded = false;
+        }
+
+        this.dy += gravity;
+        this.x += this.dx;
+        this.y += this.dy;
+
+        if (this.y > canvas.height - this.h) { this.y = canvas.height - this.h; this.dy = 0; this.grounded = true; }
+        this.x = Math.max(0, Math.min(canvas.width - this.w, this.x));
+
+        if (ball.carrier === this) {
+            this.dribbleY = Math.abs(Math.sin(Date.now() * 0.01)) * 15;
+            ball.x = this.x + (this.facing === 1 ? this.w + 5 : -5);
+            ball.y = this.y + 20 + this.dribbleY;
+
+            if (ball.x > hoop.x && ball.x < hoop.x + hoop.w &&
+                ball.y > hoop.y - 10 && ball.y < hoop.y + 20) {
+                handleScore(this.id);
+            }
+        }
+    }
+
+    draw() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.fillStyle = "white";
+        ctx.fillRect(this.x + (this.facing === 1 ? 20 : 5), this.y + 10, 5, 5);
+    }
+}
+
+const p1 = new Player('red',  100, 300, '#ff3b3b');
+const p2 = new Player('blue', 600, 300, '#3b7eff');
+
+window.addEventListener('keydown', (e) => {
+    const now = Date.now();
+    if (e.code === 'KeyW')     { if (now - lastW  < 250 && ball.carrier === p1) shoot(p1); lastW  = now; }
+    if (e.code === 'ArrowUp')  { if (now - lastUp < 250 && ball.carrier === p2) shoot(p2); lastUp = now; }
+    if (e.code === 'Space' && now > stealCooldown) steal();
+    // Prevent arrow keys from scrolling page
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+    keys[e.code] = true;
+});
+
+window.addEventListener('keyup', (e) => keys[e.code] = false);
+
+function shoot(p) {
+    ball.carrier = null; shooter = p; shotLock = Date.now() + 400;
+    const tx = hoop.x + hoop.w / 2, ty = hoop.y, time = 40;
+    ball.dx = (tx - ball.x) / time;
+    ball.dy = (ty - ball.y - 0.5 * gravity * time * time) / time;
+    ball.isPerfect = Math.random() < 0.8;
+    if (!ball.isPerfect) { ball.dx += (Math.random() - 0.5) * 4; ball.dy -= 2; }
+}
+
+function steal() {
+    if (!ball.carrier) return;
+    const holder = ball.carrier, taker = holder === p1 ? p2 : p1;
+    if (Math.hypot(p1.x - p2.x, p1.y - p2.y) < 70) {
+        ball.carrier = taker; stealCooldown = Date.now() + 500;
+    }
+}
+
+function handleScore(team) {
+    sessionScores[team]++;
+    document.getElementById('sRed').textContent  = sessionScores.red;
+    document.getElementById('sBlue').textContent = sessionScores.blue;
+
+    // Delegate to Firebase module
+    if (typeof window.addCareerPoints === 'function') {
+        window.addCareerPoints(team, 1);
+    }
+
+    resetBall();
+}
+
+function resetBall() {
+    ball.carrier = null; ball.x = 400; ball.y = 100;
+    ball.dx = 0; ball.dy = 0; ball.isPerfect = false; shooter = null;
+}
+
+window.startNewGame = () => {
+    sessionScores = { red: 0, blue: 0 };
+    timeLeft = 180; gameOver = false;
+    document.getElementById('sRed').textContent  = 0;
+    document.getElementById('sBlue').textContent = 0;
+    document.getElementById('timer').textContent = '03:00';
+    document.getElementById('newGameBtn').classList.remove('visible');
+    resetBall();
+    p1.x = 100; p1.y = 300; p2.x = 600; p2.y = 300;
+    clearInterval(timerInterval);
+    startTimer();
+};
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+            timeLeft--;
+            const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+            document.getElementById('timer').textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+        } else {
+            gameOver = true;
+            clearInterval(timerInterval);
+            document.getElementById('newGameBtn').classList.add('visible');
+        }
+    }, 1000);
+}
+
+function update() {
+    if (gameOver) return;
+    p1.update(); p2.update();
+
+    if (!ball.carrier) {
+        ball.dy += gravity; ball.x += ball.dx; ball.y += ball.dy;
+
+        if (ball.y > canvas.height - ball.radius) {
+            ball.y = canvas.height - ball.radius;
+            ball.dy *= -0.5; ball.isPerfect = false;
+        }
+        if (ball.x < 0 || ball.x > canvas.width) ball.dx *= -0.8;
+
+        [p1, p2].forEach(p => {
+            if (p === shooter && Date.now() < shotLock) return;
+            if (Math.hypot(p.x + p.w/2 - ball.x, p.y + p.h/2 - ball.y) < 35) {
+                ball.dx = p.dx * 1.2; ball.dy = p.dy - 2;
+                ball.isPerfect = false; shooter = null;
+            }
+        });
+
+        if (ball.dy > 0 && ball.x > hoop.x && ball.x < hoop.x + hoop.w &&
+            ball.y > hoop.y && ball.y < hoop.y + 15) {
+            handleScore(shooter ? shooter.id : (ball.x < 400 ? 'red' : 'blue'));
+        }
+
+        if (Date.now() > shotLock) {
+            [p1, p2].forEach(p => {
+                if (Math.hypot(p.x + p.w/2 - ball.x, p.y + p.h/2 - ball.y) < 35) ball.carrier = p;
+            });
+        }
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Court lines
+    ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 400); ctx.stroke();
+
+    // Hoop
+    ctx.fillStyle = '#ff8c00';
+    ctx.fillRect(hoop.x, hoop.y, hoop.w, hoop.h);
+    // Backboard
+    ctx.fillStyle = '#888';
+    ctx.fillRect(hoop.x + hoop.w, hoop.y - 60, 6, 110);
+    // Net (simple lines)
+    ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        ctx.beginPath();
+        ctx.moveTo(hoop.x + i * (hoop.w/4), hoop.y + hoop.h);
+        ctx.lineTo(hoop.x + hoop.w/2 + (i - 2) * 3, hoop.y + hoop.h + 22);
+        ctx.stroke();
+    }
+
+    p1.draw(); p2.draw();
+
+    ctx.fillStyle = ball.isPerfect ? '#ffd23f' : '#f07020';
+    ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    if (gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.78)';
+        ctx.fillRect(0, 0, 800, 400);
+        ctx.fillStyle = '#ffd23f';
+        ctx.font = "bold 48px 'Bebas Neue', sans-serif";
+        ctx.textAlign = 'center';
+        ctx.fillText('GAME OVER', 400, 180);
+        ctx.fillStyle = '#e8e8e8';
+        ctx.font = "22px 'Bebas Neue', sans-serif";
+        ctx.fillText(`RED  ${sessionScores.red}  —  BLUE  ${sessionScores.blue}`, 400, 230);
+        ctx.font = "16px 'DM Sans', sans-serif";
+        ctx.fillStyle = '#777';
+        ctx.fillText('Career points saved  ✓', 400, 265);
+    }
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+
+// Start timer + game loop once DOM is ready
+startTimer();
+loop();
+</script>
+</body>
+</html>
